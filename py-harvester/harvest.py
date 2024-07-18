@@ -42,21 +42,36 @@ def get_temperature():
 
 def get_data():
     # take a timestamp for this measurement
-    time = datetime.datetime.utcnow()
+    now = datetime.datetime.utcnow()
+
+    uptime_hours = (time.time() - psutil.boot_time())/3600
+    uptime_days = uptime_hours / 24
 
     # collect some stats from psutil
     disk = psutil.disk_usage('/')
     mem = psutil.virtual_memory()
     load = psutil.getloadavg()
-    temperature = get_temperature()
+    cpu_temp = get_temperature()
+    
+    if cpu_temp is None:
+        cpu_temp = float(-1)
+    
+    # Collect network stats
+    net_stat = psutil.net_io_counters(pernic=True, nowrap=True)["eth0"]
+    net_in_1 = net_stat.bytes_recv
+    net_out_1 = net_stat.bytes_sent
+    time.sleep(1)
+    net_stat = psutil.net_io_counters(pernic=True, nowrap=True)["eth0"]
+    net_in_2 = net_stat.bytes_recv
+    net_out_2 = net_stat.bytes_sent
 
-    if temperature is None:
-        temperature = float(-1)
+    net_in = round((net_in_2 - net_in_1) / 1024 / 1024, 3)
+    net_out = round((net_out_2 - net_out_1) / 1024 / 1024, 3)
 
     # format the data as a single measurement for influx
     point = {
-        "measurement": "system",
-        "time": time,
+        "measurement": "raspberrypi",
+        "time": now,
         
         "fields": {
             "load_1": load[0],
@@ -68,10 +83,13 @@ def get_data():
             "mem_percent": mem.percent,
             "mem_free": mem.free,
             "mem_used": mem.used,
-            "temperature": temperature
+            "cpu_temp": cpu_temp,
+            "eth0_in": net_in,
+            "eth0_out": net_out,
+            "uptime_hours": uptime_hours,
+            "uptime_days": uptime_days
         }
     }
-    
 
     return point
 
