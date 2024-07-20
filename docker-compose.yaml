@@ -8,14 +8,25 @@ services:
     volumes:
       - influxdb_data:/bitnami/influxdb
 
+  grafana-init:
+    image: busybox
+    restart: no
+    command: ["/bin/sh", "/script/init.sh"]
+    volumes:
+      - bitnami_grafana:/grafana
+      - ./grafana-init:/script
+
   grafana:
     image: docker.io/bitnami/grafana:11
     restart: unless-stopped
+    depends_on:
+      grafana-init: 
+        condition: service_completed_successfully
     ports:
       - 3000:3000
     env_file: ".env"
     volumes:
-      - grafana_data:/opt/bitnami/grafana/data
+      - bitnami_grafana:/opt/bitnami/grafana
 
   stats-harvester:
     build:
@@ -30,5 +41,5 @@ services:
 volumes:
   influxdb_data:
     driver: local
-  grafana_data:
+  bitnami_grafana:
     driver: local
