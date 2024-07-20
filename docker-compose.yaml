@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     ports:
       - 8086:8086
-    env_file: "influxdb.env"
+    env_file: ".env"
     volumes:
       - influxdb_data:/bitnami/influxdb
 
@@ -13,7 +13,7 @@ services:
     restart: unless-stopped
     ports:
       - 3000:3000
-    env_file: "grafana.env"
+    env_file: ".env"
     volumes:
       - grafana_data:/opt/bitnami/grafana/data
 
@@ -21,7 +21,7 @@ services:
     build:
       context: ./py-harvester
     restart: unless-stopped
-    env_file: "stats-harvester.env"
+    env_file: ".env"
     depends_on:
       - influxdb
     links:
