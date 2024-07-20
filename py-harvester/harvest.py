@@ -2,42 +2,26 @@
 
 import os
 import time
-import subprocess
 import datetime
+import signal
+import sys
+import logging
 import psutil
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-def get_temperature():
-    try:
-        # Execute the vcgencmd command
-        result = subprocess.run(['/usr/bin/vcgencmd', 'measure_temp'], capture_output=True, text=True)
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 
-        # Check if the command was successful
-        if result.returncode != 0:
-            print("Error: vcgencmd command failed")
-            return None
+def signal_handler(sig, frame):
+    logging.info(f"Signal received: {signal.strsignal(sig)}")
+    sys.exit(0)
 
-        # Parse the output
-        output = result.stdout.strip()
-        if output.startswith("temp=") and output.endswith("'C"):
-            # Extract the temperature value
-            temp_str = output.split('=')[1].strip("'C")
-            try:
-                temperature = float(temp_str)
-                return temperature
-            except ValueError:
-                print("Error: Failed to parse temperature value")
-                return None
-        else:
-            print("Error: Unexpected output format")
-            return None
-    except FileNotFoundError:
-        print("Error: /usr/bin/vcgencmd not found")
-        return None
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return None
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 
 def get_data():
@@ -51,28 +35,20 @@ def get_data():
     disk = psutil.disk_usage('/')
     mem = psutil.virtual_memory()
     load = psutil.getloadavg()
-    cpu_temp = get_temperature()
-    
+    cpu_temp = psutil.sensors_temperatures().get("cpu_thermal")[0].current
+
     if cpu_temp is None:
         cpu_temp = float(-1)
     
     # Collect network stats
     net_stat = psutil.net_io_counters(pernic=True, nowrap=True)["eth0"]
-    net_in_1 = net_stat.bytes_recv
-    net_out_1 = net_stat.bytes_sent
-    time.sleep(1)
-    net_stat = psutil.net_io_counters(pernic=True, nowrap=True)["eth0"]
-    net_in_2 = net_stat.bytes_recv
-    net_out_2 = net_stat.bytes_sent
-
-    net_in = round((net_in_2 - net_in_1) / 1024 / 1024, 3)
-    net_out = round((net_out_2 - net_out_1) / 1024 / 1024, 3)
+    eth0_bytes_in = net_stat.bytes_recv
+    eth0_bytes_out = net_stat.bytes_sent
 
     # format the data as a single measurement for influx
     point = {
         "measurement": "raspberrypi",
         "time": now,
-        
         "fields": {
             "load_1": load[0],
             "load_5": load[1],
@@ -84,8 +60,8 @@ def get_data():
             "mem_free": mem.free,
             "mem_used": mem.used,
             "cpu_temp": cpu_temp,
-            "eth0_in": net_in,
-            "eth0_out": net_out,
+            "eth0_bytes_in": eth0_bytes_in,
+            "eth0_bytes_out": eth0_bytes_out,
             "uptime_hours": uptime_hours,
             "uptime_days": uptime_days
         }
@@ -108,7 +84,7 @@ def get_influxdb_client():
         client = InfluxDBClient(url=url, token=token, org=org)
         return client, bucket
     except Exception as e:
-        print(f"Error: {e}")
+        logging.error(f"Error: {e}")
         return None, None
 
 def write_data(client, bucket, point):
@@ -116,20 +92,22 @@ def write_data(client, bucket, point):
         write_api = client.write_api(write_options=SYNCHRONOUS)
         write_api.write(bucket=bucket, record=point)
     except Exception as e:
-        print(f"Error writing data: {e}")
+        # print(f"Error writing data: {e}")
+        logging.error(f"Error writing data: {e}")
 
 if __name__ == "__main__":
     try:
         interval_str = os.getenv('INTERVAL_SECONDS')
-        # interval_str = "15"
         if interval_str is None:
-            raise ValueError("INTERVAL_SECONDS environment variable not set")
+            data = get_data()
+            print(data)
+            sys.exit(0)
         
         interval = int(interval_str)
         if interval <= 0:
             raise ValueError("INTERVAL_SECONDS must be a positive integer")
 
-        print(f"Writing to InfluxDB every {interval} seconds. Press Ctrl+C to stop.")
+        logging.info(f"Writing to InfluxDB every {interval} seconds.")
 
         client, bucket = get_influxdb_client()
         if client and bucket:
@@ -138,6 +116,6 @@ if __name__ == "__main__":
                 write_data(client, bucket, data)
                 time.sleep(interval)
     except ValueError as e:
-        print(f"Error: {e}")
+        logging.error(f"ValueError: {e}")
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        logging.error(f"Unexpected error: {e}")
