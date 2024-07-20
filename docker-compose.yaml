@@ -28,15 +28,16 @@ services:
     volumes:
       - bitnami_grafana:/opt/bitnami/grafana
 
-  stats-harvester:
-    build:
-      context: ./py-harvester
-    restart: unless-stopped
-    env_file: ".env"
-    depends_on:
-      - influxdb
-    links:
-      - influxdb
+  # Can run in container, but can't harvest some data about host. Read more in the Readme.md
+  # stats-harvester:
+  #   build:
+  #     context: ./stats-harvester-py
+  #   restart: unless-stopped
+  #   env_file: ".env"
+  #   depends_on:
+  #     - influxdb
+  #   links:
+  #     - influxdb
 
 volumes:
   influxdb_data:
