@@ -2,14 +2,27 @@
 
 This project is meant to harvest stats from a Raspberry Pi 4 and feed them into an InfluxDB instance in order to be represented in a Grafana dashboard.
 
-## Temperature reading test
+## Required files before startup
 
-```bash
-docker run -it --rm \
-    -v /usr/bin/vcgencmd:/usr/bin/vcgencmd \
-    -e LD_LIBRARY_PATH=/usr/lib \
-    --device /dev/vchiq \
-    --device /dev/vcio \
-    debian:bookworm \
-    /usr/bin/vcgencmd measure_temp
+### influxdb.env
+```ini
+INFLUXDB_DB=statsdb
+INFLUXDB_ADMIN_USER=admin
+INFLUXDB_ADMIN_USER_PASSWORD=admin_password
+INFLUXDB_ADMIN_USER_TOKEN=admin_token
+INFLUXDB_HTTP_AUTH_ENABLED=true
+```
+
+### stats-harvester.env
+```ini
+INTERVAL_SECONDS=10
+INFLUXDB_URL=http://influxdb:8086
+INFLUXDB_TOKEN=admin_token
+INFLUXDB_ORG=primary
+INFLUXDB_BUCKET=primary
+```
+
+### grafana.env
+```ini
+GF_SECURITY_ADMIN_PASSWORD=bitnami
 ```

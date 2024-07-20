@@ -1,43 +1,27 @@
 services:
   influxdb:
     image: docker.io/bitnami/influxdb:2
+    restart: unless-stopped
     ports:
       - 8086:8086
-    environment:
-      - INFLUXDB_DB=statsdb
-      - INFLUXDB_ADMIN_USER=admin
-      - INFLUXDB_ADMIN_USER_PASSWORD=admin_password
-      - INFLUXDB_ADMIN_USER_TOKEN=admin_token
-      - INFLUXDB_USER=harvester
-      - INFLUXDB_USER_PASSWORD=harvesterpassword
-      - INFLUXDB_HTTP_AUTH_ENABLED=true
+    env_file: "influxdb.env"
     volumes:
       - influxdb_data:/bitnami/influxdb
 
   grafana:
     image: docker.io/bitnami/grafana:11
+    restart: unless-stopped
     ports:
       - 3000:3000
-    environment:
-      - 'GF_SECURITY_ADMIN_PASSWORD=bitnami'
+    env_file: "grafana.env"
     volumes:
       - grafana_data:/opt/bitnami/grafana/data
 
   stats-harvester:
     build:
       context: ./py-harvester
-    volumes:
-      - /usr/bin/vcgencmd:/usr/bin/vcgencmd # Utility to obtain the Raspberry Pi temperature
-    devices:
-      - /dev/vchiq # Device required by /usr/bin/vcgencmd
-      - /dev/vcio # Device required by /usr/bin/vcgencmd
-    environment:
-      - INTERVAL_SECONDS=10
-      - INFLUXDB_URL=http://influxdb:8086
-      - INFLUXDB_TOKEN=admin_token
-      - INFLUXDB_ORG=primary
-      - INFLUXDB_BUCKET=primary
-      - LD_LIBRARY_PATH=/usr/lib # Required for temperature readings: https://unix.stackexchange.com/questions/706170/get-raspis-cpu-temperature-within-docker-container
+    restart: unless-stopped
+    env_file: "stats-harvester.env"
     depends_on:
       - influxdb
     links:
