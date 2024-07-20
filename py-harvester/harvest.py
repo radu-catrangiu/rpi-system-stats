@@ -97,7 +97,7 @@ def write_data(client, bucket, point):
 
 if __name__ == "__main__":
     try:
-        interval_str = os.getenv('INTERVAL_SECONDS')
+        interval_str = os.getenv('HARVEST_INTERVAL_SECONDS')
         if interval_str is None:
             data = get_data()
             print(data)
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         
         interval = int(interval_str)
         if interval <= 0:
-            raise ValueError("INTERVAL_SECONDS must be a positive integer")
+            raise ValueError("HARVEST_INTERVAL_SECONDS must be a positive integer")
 
         logging.info(f"Writing to InfluxDB every {interval} seconds.")
 
