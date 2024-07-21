@@ -63,6 +63,8 @@ This component is made of a Python script that uses the [psutil](https://pypi.or
 
 ## Notes
 
+* ### Currently the InfluxDB bucket retention is set to `Forever` it needs to be changed _manually_ **!** 
+
 * Initially I wanted to make this project delivaerable using only `docker compose`, but the script that collects data uses files from the Linux `/proc` File System which is *kind of special*. 
     * It can be mounted on a Docker container, but because of the way the `/proc` File System works it won't be able to retrieve some stats that belong to the host machine.
     * Basically, when reading a file in the `/proc` directory, there isn't an actual file being read, but instead it's delivering real time data about structures in the Kernel.
