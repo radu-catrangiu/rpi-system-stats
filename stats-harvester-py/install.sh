@@ -34,19 +34,22 @@ deactivate
 
 # Read environment variables from .env file
 ENV_VARS=$(awk -F= '{print "Environment=" $1 "=\"" $2 "\""}' $ENV_FILE)
+INFLUXDB_URL=$(cat $ENV_FILE | grep INFLUXDB_URL | cut -d= -f2)
 
 # Create the systemd service unit file
 echo "[Unit]
 Description=Raspberry Pi Stats Harvester
-After=network.target rpi-stats-influx-n-grafana.service
+After=network.target
 Requires=rpi-stats-influx-n-grafana.service
 
 [Service]
+ExecStartPre=curl -sL $INFLUXDB_URL/ping?wait_for_leader=30s
 ExecStart=$VENV_PATH/bin/python $SCRIPT_PATH
 WorkingDirectory=$WORKING_DIRECTORY
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
+RestartSec=5s
 User=$CURRENT_USER
 $ENV_VARS
 
