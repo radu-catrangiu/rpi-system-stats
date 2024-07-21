@@ -115,53 +115,6 @@ def get_net_stats():
 
     return points
 
-def get_data():
-    # take a timestamp for this measurement
-    now = datetime.datetime.utcnow()
-
-    uptime_hours = (time.time() - psutil.boot_time())/3600
-
-    # collect some stats from psutil
-    disk = psutil.disk_usage('/')
-    mem = psutil.virtual_memory()
-    load = [x / psutil.cpu_count() * 100 for x in psutil.getloadavg()]
-    cpu_temp = psutil.sensors_temperatures().get("cpu_thermal")[0].current
-
-    if cpu_temp is None:
-        cpu_temp = float(-1)
-    
-    # Collect network stats
-    net_stat = psutil.net_io_counters(nowrap=True)
-
-    # collect disk usage stats
-    disk_stat = psutil.disk_io_counters(perdisk=False)
-
-    # format the data as a single measurement for influx
-    point = {
-        "measurement": "raspberrypi",
-        "time": now,
-        "fields": {
-            "load_percent_over_1m": load[0],
-            "load_percent_over_5m": load[1],
-            "load_percent_over_15m": load[2],
-            "disk_percent": disk.percent,
-            "disk_free": disk.free,
-            "disk_used": disk.used,
-            "disk_read_bytes": disk_stat.read_bytes,
-            "disk_write_bytes": disk_stat.write_bytes,
-            "mem_available": mem.available,
-            "mem_percent": mem.percent,
-            "mem_total": mem.total,
-            "mem_used": mem.used,
-            "cpu_temp": cpu_temp,
-            "net_bytes_in": net_stat.bytes_recv,
-            "net_bytes_out": net_stat.bytes_sent,
-            "uptime_hours": uptime_hours
-        }
-    }
-
-    return point
-
 def get_influxdb_client():
     try:
         # Get connection details from environment variables
@@ -191,9 +144,7 @@ if __name__ == "__main__":
     try:
         interval_str = os.getenv('HARVEST_INTERVAL_SECONDS')
         if interval_str is None:
-            data = get_data()
-            print(data)
-            sys.exit(0)
+            raise ValueError("HARVEST_INTERVAL_SECONDS environment variable missing")
         
         interval = int(interval_str)
         if interval <= 0:
@@ -212,8 +163,6 @@ if __name__ == "__main__":
                 points += get_sensor_temperatures()
                 points += get_system_info()
                 points += get_net_stats()
-                data = get_data()
-                points += [data]
                 write_data(client, bucket, points)
                 time.sleep(interval)
     except ValueError as e:

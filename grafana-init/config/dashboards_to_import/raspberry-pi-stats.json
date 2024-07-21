@@ -22,7 +22,7 @@
     "links": [],
     "panels": [
         {
-            "collapsed": true,
+            "collapsed": false,
             "gridPos": {
                 "h": 1,
                 "w": 24,
@@ -30,246 +30,245 @@
                 "y": 0
             },
             "id": 18,
-            "panels": [
-                {
-                    "datasource": {
-                        "type": "influxdb",
-                        "uid": "influxdb_uid"
+            "panels": [],
+            "title": "Details",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb_uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds",
+                        "seriesBy": "last"
                     },
-                    "fieldConfig": {
-                        "defaults": {
-                            "color": {
-                                "mode": "thresholds",
-                                "seriesBy": "last"
-                            },
-                            "custom": {
-                                "axisBorderShow": false,
-                                "axisCenteredZero": false,
-                                "axisColorMode": "text",
-                                "axisLabel": "",
-                                "axisPlacement": "auto",
-                                "barAlignment": 0,
-                                "drawStyle": "line",
-                                "fillOpacity": 15,
-                                "gradientMode": "scheme",
-                                "hideFrom": {
-                                    "legend": false,
-                                    "tooltip": false,
-                                    "viz": false
-                                },
-                                "insertNulls": false,
-                                "lineInterpolation": "smooth",
-                                "lineStyle": {
-                                    "fill": "solid"
-                                },
-                                "lineWidth": 1,
-                                "pointSize": 5,
-                                "scaleDistribution": {
-                                    "type": "linear"
-                                },
-                                "showPoints": "never",
-                                "spanNulls": false,
-                                "stacking": {
-                                    "group": "A",
-                                    "mode": "none"
-                                },
-                                "thresholdsStyle": {
-                                    "mode": "dashed"
-                                }
-                            },
-                            "fieldMinMax": false,
-                            "mappings": [],
-                            "min": 0,
-                            "thresholds": {
-                                "mode": "percentage",
-                                "steps": [
-                                    {
-                                        "color": "green",
-                                        "value": null
-                                    },
-                                    {
-                                        "color": "orange",
-                                        "value": 80
-                                    },
-                                    {
-                                        "color": "red",
-                                        "value": 95
-                                    }
-                                ]
-                            },
-                            "unit": "decbytes"
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 15,
+                        "gradientMode": "scheme",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
                         },
-                        "overrides": [
+                        "insertNulls": false,
+                        "lineInterpolation": "smooth",
+                        "lineStyle": {
+                            "fill": "solid"
+                        },
+                        "lineWidth": 1,
+                        "pointSize": 5,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "never",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "dashed"
+                        }
+                    },
+                    "fieldMinMax": false,
+                    "mappings": [],
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "percentage",
+                        "steps": [
                             {
-                                "matcher": {
-                                    "id": "byName",
-                                    "options": "disk_total"
-                                },
-                                "properties": [
-                                    {
-                                        "id": "custom.fillOpacity",
-                                        "value": 0
-                                    }
-                                ]
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "orange",
+                                "value": 80
+                            },
+                            {
+                                "color": "red",
+                                "value": 95
                             }
                         ]
                     },
-                    "gridPos": {
-                        "h": 8,
-                        "w": 11,
-                        "x": 0,
-                        "y": 1
-                    },
-                    "id": 8,
-                    "options": {
-                        "legend": {
-                            "calcs": [],
-                            "displayMode": "list",
-                            "placement": "right",
-                            "showLegend": false
-                        },
-                        "tooltip": {
-                            "mode": "multi",
-                            "sort": "none"
-                        }
-                    },
-                    "targets": [
-                        {
-                            "datasource": {
-                                "type": "influxdb",
-                                "uid": "influxdb_uid"
-                            },
-                            "query": "disk_data = from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"raspberrypi\")\n  |> filter(fn: (r) => r._field == \"disk_free\" or r._field == \"disk_used\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({\n    _time: r._time,\n    disk_free: r.disk_free,\n    disk_used: r.disk_used,\n    disk_total: r.disk_free + r.disk_used\n  }))\n  |> drop(columns: [\"_start\", \"_stop\", \"_measurement\", \"result\", \"table\"])\n\ndisk_free = disk_data\n  |> map(fn: (r) => ({\n    _time: r._time,\n    _field: \"disk_free\",\n    _value: r.disk_free\n  }))\n\ndisk_used = disk_data\n  |> map(fn: (r) => ({\n    _time: r._time,\n    _field: \"disk_used\",\n    _value: r.disk_used\n  }))\n\ndisk_total = disk_data\n  |> map(fn: (r) => ({\n    _time: r._time,\n    _field: \"disk_total\",\n    _value: r.disk_total\n  }))\n\nunion(tables: [disk_used, disk_total])\n  |> group(columns: [\"_field\"])\n",
-                            "refId": "A"
-                        }
-                    ],
-                    "title": "Disk Space Usage Over Time",
-                    "transparent": true,
-                    "type": "timeseries"
+                    "unit": "decbytes"
                 },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "disk_total"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.fillOpacity",
+                                "value": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 11,
+                "x": 0,
+                "y": 1
+            },
+            "id": 8,
+            "options": {
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "right",
+                    "showLegend": false
+                },
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                }
+            },
+            "targets": [
                 {
                     "datasource": {
                         "type": "influxdb",
                         "uid": "influxdb_uid"
                     },
-                    "fieldConfig": {
-                        "defaults": {
-                            "color": {
-                                "mode": "thresholds",
-                                "seriesBy": "last"
-                            },
-                            "custom": {
-                                "axisBorderShow": false,
-                                "axisCenteredZero": false,
-                                "axisColorMode": "text",
-                                "axisLabel": "",
-                                "axisPlacement": "auto",
-                                "barAlignment": 0,
-                                "drawStyle": "line",
-                                "fillOpacity": 30,
-                                "gradientMode": "scheme",
-                                "hideFrom": {
-                                    "legend": false,
-                                    "tooltip": false,
-                                    "viz": false
-                                },
-                                "insertNulls": false,
-                                "lineInterpolation": "smooth",
-                                "lineStyle": {
-                                    "fill": "solid"
-                                },
-                                "lineWidth": 1,
-                                "pointSize": 6,
-                                "scaleDistribution": {
-                                    "type": "linear"
-                                },
-                                "showPoints": "auto",
-                                "spanNulls": false,
-                                "stacking": {
-                                    "group": "A",
-                                    "mode": "none"
-                                },
-                                "thresholdsStyle": {
-                                    "mode": "off"
-                                }
-                            },
-                            "displayName": "CPU Temperature",
-                            "fieldMinMax": false,
-                            "mappings": [],
-                            "thresholds": {
-                                "mode": "absolute",
-                                "steps": [
-                                    {
-                                        "color": "green",
-                                        "value": null
-                                    },
-                                    {
-                                        "color": "green",
-                                        "value": 40
-                                    },
-                                    {
-                                        "color": "yellow",
-                                        "value": 50
-                                    },
-                                    {
-                                        "color": "orange",
-                                        "value": 60
-                                    },
-                                    {
-                                        "color": "red",
-                                        "value": 70
-                                    },
-                                    {
-                                        "color": "dark-red",
-                                        "value": 80
-                                    }
-                                ]
-                            },
-                            "unit": "celsius"
-                        },
-                        "overrides": []
-                    },
-                    "gridPos": {
-                        "h": 8,
-                        "w": 11,
-                        "x": 11,
-                        "y": 1
-                    },
-                    "id": 1,
-                    "options": {
-                        "legend": {
-                            "calcs": [
-                                "min",
-                                "max",
-                                "mean"
-                            ],
-                            "displayMode": "list",
-                            "placement": "bottom",
-                            "showLegend": false
-                        },
-                        "tooltip": {
-                            "hoverProximity": 200,
-                            "mode": "single",
-                            "sort": "none"
-                        }
-                    },
-                    "targets": [
-                        {
-                            "datasource": {
-                                "type": "influxdb",
-                                "uid": "influxdb_uid"
-                            },
-                            "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"raspberrypi\")\n  |> filter(fn: (r) => r[\"_field\"] == \"cpu_temp\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
-                            "refId": "A"
-                        }
-                    ],
-                    "title": "CPU Temperature Over Time",
-                    "transparent": true,
-                    "type": "timeseries"
+                    "query": "disk_data = from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"disk_usage\")\n  |> filter(fn: (r) => r._field == \"disk_free\" or r._field == \"disk_used\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({\n    _time: r._time,\n    disk_free: r.disk_free,\n    disk_used: r.disk_used,\n    disk_total: r.disk_free + r.disk_used\n  }))\n  |> drop(columns: [\"_start\", \"_stop\", \"_measurement\", \"result\", \"table\"])\n\ndisk_free = disk_data\n  |> map(fn: (r) => ({\n    _time: r._time,\n    _field: \"disk_free\",\n    _value: r.disk_free\n  }))\n\ndisk_used = disk_data\n  |> map(fn: (r) => ({\n    _time: r._time,\n    _field: \"disk_used\",\n    _value: r.disk_used\n  }))\n\ndisk_total = disk_data\n  |> map(fn: (r) => ({\n    _time: r._time,\n    _field: \"disk_total\",\n    _value: r.disk_total\n  }))\n\nunion(tables: [disk_used, disk_total])\n  |> group(columns: [\"_field\"])\n",
+                    "refId": "A"
                 }
             ],
-            "title": "Details",
-            "type": "row"
+            "title": "Disk Space Usage Over Time",
+            "transparent": true,
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "influxdb",
+                "uid": "influxdb_uid"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds",
+                        "seriesBy": "last"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "barAlignment": 0,
+                        "drawStyle": "line",
+                        "fillOpacity": 30,
+                        "gradientMode": "scheme",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "insertNulls": false,
+                        "lineInterpolation": "smooth",
+                        "lineStyle": {
+                            "fill": "solid"
+                        },
+                        "lineWidth": 1,
+                        "pointSize": 6,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "showPoints": "auto",
+                        "spanNulls": false,
+                        "stacking": {
+                            "group": "A",
+                            "mode": "none"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "displayName": "CPU Temperature",
+                    "fieldMinMax": false,
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "green",
+                                "value": 40
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "orange",
+                                "value": 60
+                            },
+                            {
+                                "color": "red",
+                                "value": 70
+                            },
+                            {
+                                "color": "dark-red",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    "unit": "celsius"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 11,
+                "x": 11,
+                "y": 1
+            },
+            "id": 1,
+            "options": {
+                "legend": {
+                    "calcs": [
+                        "min",
+                        "max",
+                        "mean"
+                    ],
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": false
+                },
+                "tooltip": {
+                    "hoverProximity": 200,
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "influxdb_uid"
+                    },
+                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sensor_temperatures\")\n  |> filter(fn: (r) => r[\"_field\"] == \"current\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")",
+                    "refId": "A"
+                }
+            ],
+            "title": "CPU Temperature Over Time",
+            "transparent": true,
+            "type": "timeseries"
         },
         {
             "collapsed": false,
@@ -277,7 +276,7 @@
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 1
+                "y": 9
             },
             "id": 14,
             "panels": [],
@@ -314,7 +313,7 @@
                 "h": 8,
                 "w": 6,
                 "x": 0,
-                "y": 2
+                "y": 10
             },
             "id": 10,
             "options": {
@@ -341,7 +340,7 @@
                         "type": "influxdb",
                         "uid": "influxdb_uid"
                     },
-                    "query": "from(bucket: \"primary\")\n  |> range(start: -1h)  // Adjust the time range as needed\n  |> filter(fn: (r) => r._measurement == \"raspberrypi\")\n  |> filter(fn: (r) => r._field == \"uptime_hours\")\n  |> last()\n",
+                    "query": "from(bucket: \"primary\")\n  |> range(start: -1h)  // Adjust the time range as needed\n  |> filter(fn: (r) => r._measurement == \"system_info\")\n  |> filter(fn: (r) => r._field == \"uptime_hours\")\n  |> last()\n",
                     "refId": "A"
                 }
             ],
@@ -400,7 +399,7 @@
                 "h": 8,
                 "w": 3,
                 "x": 6,
-                "y": 2
+                "y": 10
             },
             "id": 3,
             "options": {
@@ -427,7 +426,7 @@
                         "type": "influxdb",
                         "uid": "influxdb_uid"
                     },
-                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"raspberrypi\")\n  |> filter(fn: (r) => r._field == \"cpu_temp\")\n",
+                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"sensor_temperatures\")\n  |> filter(fn: (r) => r[\"sensor\"] == \"cpu_thermal\")\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\n  |> yield(name: \"last\")",
                     "refId": "A"
                 }
             ],
@@ -474,7 +473,7 @@
                 "h": 8,
                 "w": 3,
                 "x": 9,
-                "y": 2
+                "y": 10
             },
             "id": 9,
             "options": {
@@ -501,7 +500,7 @@
                         "type": "influxdb",
                         "uid": "influxdb_uid"
                     },
-                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"raspberrypi\")\n  |> filter(fn: (r) => r._field == \"disk_percent\")\n",
+                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"disk_usage\")\n  |> filter(fn: (r) => r._field == \"disk_percent\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n",
                     "refId": "A"
                 }
             ],
@@ -549,7 +548,7 @@
                 "h": 8,
                 "w": 3,
                 "x": 12,
-                "y": 2
+                "y": 10
             },
             "id": 6,
             "options": {
@@ -652,7 +651,7 @@
                 "h": 8,
                 "w": 7,
                 "x": 15,
-                "y": 2
+                "y": 10
             },
             "id": 12,
             "options": {
@@ -693,7 +692,7 @@
                 "h": 1,
                 "w": 24,
                 "x": 0,
-                "y": 10
+                "y": 18
             },
             "id": 13,
             "panels": [],
@@ -759,13 +758,62 @@
                     },
                     "unit": "percent"
                 },
-                "overrides": []
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "usage_percent core_0"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "CPU 0"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "usage_percent core_1"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "CPU 1"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "usage_percent core_2"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "CPU 2"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "usage_percent core_3"
+                        },
+                        "properties": [
+                            {
+                                "id": "displayName",
+                                "value": "CPU 3"
+                            }
+                        ]
+                    }
+                ]
             },
             "gridPos": {
                 "h": 8,
                 "w": 12,
                 "x": 0,
-                "y": 11
+                "y": 19
             },
             "id": 11,
             "options": {
@@ -877,7 +925,7 @@
                 "h": 8,
                 "w": 10,
                 "x": 12,
-                "y": 11
+                "y": 19
             },
             "id": 17,
             "options": {
@@ -1026,7 +1074,7 @@
                 "h": 8,
                 "w": 8,
                 "x": 0,
-                "y": 19
+                "y": 27
             },
             "id": 16,
             "options": {
@@ -1118,7 +1166,7 @@
                     {
                         "matcher": {
                             "id": "byName",
-                            "options": "read_rate"
+                            "options": "read_bytes sda"
                         },
                         "properties": [
                             {
@@ -1130,7 +1178,7 @@
                     {
                         "matcher": {
                             "id": "byName",
-                            "options": "write_rate"
+                            "options": "write_bytes sda"
                         },
                         "properties": [
                             {
@@ -1145,7 +1193,7 @@
                 "h": 8,
                 "w": 7,
                 "x": 8,
-                "y": 19
+                "y": 27
             },
             "id": 15,
             "options": {
@@ -1166,7 +1214,7 @@
                         "type": "influxdb",
                         "uid": "influxdb_uid"
                     },
-                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"raspberrypi\")\n  |> filter(fn: (r) => r._field == \"disk_read_bytes\" or r._field == \"disk_write_bytes\")\n  |> derivative(unit: 1s, nonNegative: true)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"bps\")\n",
+                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"disk_io_usage\")\n  |> filter(fn: (r) => r._field == \"read_bytes\" or r._field == \"write_bytes\")\n  |> derivative(unit: 1s, nonNegative: true)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"bps\")\n",
                     "refId": "A"
                 }
             ],
@@ -1265,7 +1313,7 @@
                 "h": 8,
                 "w": 7,
                 "x": 15,
-                "y": 19
+                "y": 27
             },
             "id": 4,
             "options": {
@@ -1286,7 +1334,7 @@
                         "type": "influxdb",
                         "uid": "influxdb_uid"
                     },
-                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"raspberrypi\")\n  |> filter(fn: (r) => r._field == \"mem_total\" or r._field == \"mem_used\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")\n",
+                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"memory_usage\")\n  |> filter(fn: (r) => r._field == \"mem_total\" or r._field == \"mem_used\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")\n",
                     "refId": "A"
                 }
             ],
@@ -1302,7 +1350,7 @@
         "list": []
     },
     "time": {
-        "from": "now-5m",
+        "from": "now-30m",
         "to": "now"
     },
     "timepicker": {},
