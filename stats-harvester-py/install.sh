@@ -63,4 +63,4 @@ sudo systemctl enable $SERVICE_NAME.service
 sudo systemctl start $SERVICE_NAME.service
 
 # Check the status of the service
-sudo systemctl status $SERVICE_NAME.service
+sudo systemctl status --no-pager -l $SERVICE_NAME.service | head -n 20

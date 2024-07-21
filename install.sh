@@ -66,6 +66,4 @@ fi
 
 # Check the status of the services
 echo "Checking status of $SERVICE_NAME service..."
-sudo systemctl status $SERVICE_NAME.service
-echo "Checking status of rpi-stats-harvester service..."
-sudo systemctl status rpi-stats-harvester.service
+sudo systemctl status --no-pager -l $SERVICE_NAME.service | head -n 20
