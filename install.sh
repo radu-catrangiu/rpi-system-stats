@@ -19,7 +19,8 @@ fi
 sudo bash -c "cat > $SERVICE_FILE <<EOF
 [Unit]
 Description=$SERVICE_DESCRIPTION
-After=network.target
+After=network.target docker.service
+Requires=docker.service
 
 [Service]
 WorkingDirectory=$SCRIPT_DIR
