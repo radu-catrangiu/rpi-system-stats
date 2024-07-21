@@ -5,7 +5,7 @@ SERVICE_NAME=rpi-stats-influx-n-grafana
 SERVICE_DESCRIPTION="Raspberry Pi InfluxDb & Grafana Containers"
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
-USER=$(whoami)  # Get the current user's username
+CURRENT_USER=$(whoami)  # Get the current user's username
 GROUP=$(id -gn)  # Get the current user's group name
 DOCKER_PATH=$(which docker)
 
@@ -26,7 +26,7 @@ WorkingDirectory=$SCRIPT_DIR
 ExecStart=$DOCKER_PATH compose up
 ExecStop=$DOCKER_PATH compose down
 Restart=always
-User=$USER
+User=$CURRENT_USER
 Group=$GROUP
 
 [Install]
@@ -57,7 +57,7 @@ else
     done
 
     echo "$SERVICE_NAME is running. Proceeding with the installation of rpi-stats-harvester..."
-    sudo bash "$SCRIPT_DIR/stats-harvester-py/install.sh"
+    bash "$SCRIPT_DIR/stats-harvester-py/install.sh"
   else
     echo "Error: stats-harvester-py/install.sh not found!"
     exit 1

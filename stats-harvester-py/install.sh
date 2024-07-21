@@ -6,7 +6,7 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 SCRIPT_PATH="$SCRIPT_DIR/harvest.py"
 WORKING_DIRECTORY="$SCRIPT_DIR"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
-USER=$(whoami)  # Get the current user's username
+CURRENT_USER=$(whoami)  # Get the current user's username
 VENV_PATH="$WORKING_DIRECTORY/venv"
 REQUIREMENTS_FILE="$WORKING_DIRECTORY/requirements.txt"
 ENV_FILE="$SCRIPT_DIR/.env"
@@ -47,7 +47,7 @@ WorkingDirectory=$WORKING_DIRECTORY
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
-User=$USER
+User=$CURRENT_USER
 $ENV_VARS
 
 [Install]
