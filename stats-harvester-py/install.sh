@@ -49,7 +49,7 @@ WorkingDirectory=$WORKING_DIRECTORY
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
-RestartSec=5s
+RestartSec=25s
 User=$CURRENT_USER
 $ENV_VARS
 

@@ -27,6 +27,8 @@ WorkingDirectory=$SCRIPT_DIR
 ExecStart=$DOCKER_PATH compose up
 ExecStop=$DOCKER_PATH compose down
 Restart=always
+RestartSec=20s
+TimeoutSec=30s
 User=$CURRENT_USER
 Group=$GROUP
 
