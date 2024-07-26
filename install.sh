@@ -26,6 +26,7 @@ Requires=docker.service
 WorkingDirectory=$SCRIPT_DIR
 ExecStart=$DOCKER_PATH compose up
 ExecStop=$DOCKER_PATH compose down
+ExecStartPost=/bin/bash -c 'for i in {1..10}; do curl -sSf http://localhost:8086/ping && exit 0 || sleep 5; done; exit 1'
 Restart=always
 RestartSec=20s
 TimeoutSec=30s
