@@ -20,7 +20,7 @@ sudo bash -c "cat > $SERVICE_FILE <<EOF
 [Unit]
 Description=$SERVICE_DESCRIPTION
 After=network.target docker.service
-Requires=docker.service
+Requires=docker.service docker.socket
 
 [Service]
 WorkingDirectory=$SCRIPT_DIR
