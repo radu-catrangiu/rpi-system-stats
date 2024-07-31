@@ -36,7 +36,7 @@ def get_cpu_usage():
     return points
 
 def get_disk_io_usage():
-    disk_to_allow = ["sda"]
+    disk_to_allow = ["sda", "mmcblk0"]
     disks = psutil.disk_io_counters(perdisk=True)
 
     points = []
@@ -54,14 +54,20 @@ def get_disk_io_usage():
     return points
 
 def get_disk_usage():
-    disk = psutil.disk_usage('/')
+    paths_to_check = ["/", "/mnt/net"]
 
-    point = Point("disk_usage") \
-        .field("disk_percent", disk.percent) \
-        .field("disk_free", disk.free) \
-        .field("disk_used", disk.used)
-    
-    return [point]
+    points = []
+    for path in paths_to_check: 
+        disk = psutil.disk_usage(path)
+        point = Point("disk_usage") \
+            .tag("path", path) \
+            .field("disk_percent", disk.percent) \
+            .field("disk_free", disk.free) \
+            .field("disk_used", disk.used)
+
+        points.append(point)
+
+    return points
 
 def get_memory_usage():
     mem = psutil.virtual_memory()
