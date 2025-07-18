@@ -43,7 +43,7 @@
                             }
                         ]
                     },
-                    "unit": "dthms"
+                    "unit": "dtdhms"
                 },
                 "overrides": []
             },
@@ -259,32 +259,22 @@
                     },
                     "fieldMinMax": false,
                     "mappings": [],
-                    "max": 100,
-                    "min": 0,
                     "thresholds": {
                         "mode": "absolute",
                         "steps": [
                             {
                                 "color": "green",
                                 "value": null
-                            },
-                            {
-                                "color": "orange",
-                                "value": 80
-                            },
-                            {
-                                "color": "dark-red",
-                                "value": 90
                             }
                         ]
                     },
-                    "unit": "percent"
+                    "unit": "decbytes"
                 },
                 "overrides": [
                     {
                         "matcher": {
                             "id": "byName",
-                            "options": "disk_percent /"
+                            "options": "disk_free /"
                         },
                         "properties": [
                             {
@@ -296,7 +286,7 @@
                     {
                         "matcher": {
                             "id": "byName",
-                            "options": "disk_percent /mnt/net"
+                            "options": "disk_free /mnt/net"
                         },
                         "properties": [
                             {
@@ -338,11 +328,11 @@
                         "type": "influxdb",
                         "uid": "influxdb_uid"
                     },
-                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"disk_usage\")\n  |> filter(fn: (r) => r._field == \"disk_percent\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n",
+                    "query": "from(bucket: \"primary\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"disk_usage\")\n  |> filter(fn: (r) => r._field == \"disk_free\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n",
                     "refId": "A"
                 }
             ],
-            "title": "Disk Space Usage",
+            "title": "Free Disk Space",
             "transparent": true,
             "type": "stat"
         },
